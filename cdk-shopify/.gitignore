@@ -1,0 +1,34 @@
+# Compiled JavaScript files
+*.js
+*.js.map
+*.d.ts
+
+# Keep important JS files
+!jest.config.js
+!scripts/*.js
+!tests/*.js
+
+# Dependencies
+node_modules/
+
+# CDK
+.cdk.staging/
+cdk.out/
+
+# Credentials and secrets (NEVER commit these)
+shopify-credentials.json
+*credentials*.json
+!shopify-credentials.example.json
+*secrets*.json
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+test-results/
+
+# OS files
+.DS_Store
+
+# Generated deployment schema (contains actual URLs)
+shopify-schema-deployed.yaml

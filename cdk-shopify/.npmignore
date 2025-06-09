@@ -1,0 +1,20 @@
+# Source files
+*.ts
+!*.d.ts
+
+# CDK
+.cdk.staging/
+cdk.out/
+
+# Tests and scripts
+tests/
+scripts/
+docs/
+
+# Development files
+shopify-credentials*.json
+*.log
+.DS_Store
+
+# Dependencies
+node_modules/

@@ -1,0 +1,765 @@
+openapi: 3.0.3
+info:
+  title: ShopifyCommerce
+  description: Manage Shopify store products, orders, customers, and inventory
+  version: 1.0.0
+servers:
+  - url: https://api.example.com
+security:
+  - OAuth2: []
+paths:
+  /products:
+    get:
+      operationId: getProducts
+      description: Retrieve a list of products from your Shopify store with optional filtering by collection, product type, or vendor. Use this operation to browse products or find specific products by their attributes.
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of products to return. Defaults to 5 if not specified.
+          required: false
+          schema:
+            type: integer
+            default: 5
+            maximum: 50
+        - name: collection
+          in: query
+          description: Filter products by collection name
+          required: false
+          schema:
+            type: string
+        - name: productType
+          in: query
+          description: Filter products by product type (e.g., 'Shirts', 'Shoes', 'Accessories')
+          required: false
+          schema:
+            type: string
+        - name: vendor
+          in: query
+          description: Filter products by vendor or brand name
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter products by status (active, draft, archived)
+          required: false
+          schema:
+            type: string
+            enum:
+              - active
+              - draft
+              - archived
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductList"
+    post:
+      operationId: createProduct
+      description: Create a new product in your Shopify store with title, description, price, and other attributes. Use this operation when adding new merchandise to your store.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+  /products/{productId}:
+    get:
+      operationId: getProductById
+      description: Retrieve detailed information about a specific product by its ID. Use this operation when you need complete details about a particular product.
+      parameters:
+        - name: productId
+          in: path
+          description: Unique identifier of the product
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    put:
+      operationId: updateProduct
+      description: Update an existing product's information such as title, description, price, or inventory. Use this operation when product details need to be modified.
+      parameters:
+        - name: productId
+          in: path
+          description: Unique identifier of the product to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: Name of the product
+                description:
+                  type: string
+                  description: Detailed description of the product
+                productType:
+                  type: string
+                  description: Type or category of the product (e.g., 'T-shirt', 'Shoes')
+                vendor:
+                  type: string
+                  description: Manufacturer or brand of the product
+                price:
+                  type: number
+                  format: float
+                  description: Price of the product in store currency
+                compareAtPrice:
+                  type: number
+                  format: float
+                  description: Original price if the product is on sale
+                tags:
+                  type: string
+                  description: Comma-separated list of tags for the product
+                status:
+                  type: string
+                  enum:
+                    - active
+                    - draft
+                    - archived
+                  description: Publication status of the product
+                inventoryQuantity:
+                  type: integer
+                  description: Inventory quantity for the product
+                imageUrl:
+                  type: string
+                  description: URL of the product image to update or add
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+  /orders:
+    get:
+      operationId: getOrders
+      description: Retrieve a list of orders from your Shopify store with optional filtering by status, date range, or customer. Use this operation to view recent orders or find specific orders.
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of orders to return. Defaults to 5 if not specified.
+          required: false
+          schema:
+            type: integer
+            default: 5
+            maximum: 50
+        - name: status
+          in: query
+          description: Filter orders by fulfillment status (unfulfilled, partially_fulfilled, fulfilled, etc.)
+          required: false
+          schema:
+            type: string
+            enum:
+              - unfulfilled
+              - partially_fulfilled
+              - fulfilled
+              - any
+        - name: financialStatus
+          in: query
+          description: Filter orders by payment status (paid, pending, refunded, etc.)
+          required: false
+          schema:
+            type: string
+            enum:
+              - authorized
+              - pending
+              - paid
+              - partially_paid
+              - refunded
+              - partially_refunded
+              - voided
+              - any
+        - name: createdAtMin
+          in: query
+          description: Filter orders created on or after this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: createdAtMax
+          in: query
+          description: Filter orders created on or before this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderList"
+  /orders/{orderId}:
+    get:
+      operationId: getOrderById
+      description: Retrieve detailed information about a specific order by its ID. Use this operation when you need complete details about a particular order including line items, shipping, and payment information.
+      parameters:
+        - name: orderId
+          in: path
+          description: Unique identifier of the order
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+  /customers:
+    get:
+      operationId: getCustomers
+      description: Retrieve a list of customers from your Shopify store with optional filtering by email, phone, or order count. Use this operation to find specific customers or browse your customer base.
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of customers to return. Defaults to 5 if not specified.
+          required: false
+          schema:
+            type: integer
+            default: 5
+            maximum: 50
+        - name: email
+          in: query
+          description: Filter customers by email address
+          required: false
+          schema:
+            type: string
+        - name: phone
+          in: query
+          description: Filter customers by phone number
+          required: false
+          schema:
+            type: string
+        - name: ordersCountMin
+          in: query
+          description: Filter customers with at least this many orders
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerList"
+  /customers/{customerId}:
+    get:
+      operationId: getCustomerById
+      description: Retrieve detailed information about a specific customer by their ID. Use this operation when you need complete details about a particular customer including their contact information and order history.
+      parameters:
+        - name: customerId
+          in: path
+          description: Unique identifier of the customer
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+  /inventory:
+    get:
+      operationId: getInventoryLevels
+      description: Retrieve inventory levels for products in your Shopify store. Use this operation to check stock levels and manage inventory.
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of inventory items to return. Defaults to 5 if not specified.
+          required: false
+          schema:
+            type: integer
+            default: 5
+            maximum: 50
+        - name: locationId
+          in: query
+          description: Filter inventory by location ID
+          required: false
+          schema:
+            type: string
+        - name: productId
+          in: query
+          description: Filter inventory for a specific product
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryList"
+  /inventory/{inventoryItemId}:
+    put:
+      operationId: updateInventoryLevel
+      description: Update the inventory level for a specific product variant. Use this operation when adjusting stock levels for products.
+      parameters:
+        - name: inventoryItemId
+          in: path
+          description: Unique identifier of the inventory item
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                locationId:
+                  type: string
+                  description: ID of the location where inventory is stored
+                available:
+                  type: integer
+                  description: New available quantity for the inventory item
+              required:
+                - locationId
+                - available
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItem"
+                
+  /locations:
+    get:
+      operationId: getLocations
+      description: Retrieve a list of locations from your Shopify store. Use this operation to view all available locations for inventory management.
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of locations to return. Defaults to 10 if not specified.
+          required: false
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LocationList"
+                
+  /locations/{locationId}:
+    get:
+      operationId: getLocationById
+      description: Retrieve detailed information about a specific location by its ID. Use this operation when you need complete details about a particular location.
+      parameters:
+        - name: locationId
+          in: path
+          description: Unique identifier of the location
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Location"
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://your-api-gateway-url/prod/oauth/authorize
+          tokenUrl: https://your-api-gateway-url/prod/oauth/token
+          scopes:
+            read: Read access to Shopify store data
+            write: Write access to Shopify store data
+  schemas:
+    ProductInput:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Name of the product
+        description:
+          type: string
+          description: Detailed description of the product
+        productType:
+          type: string
+          description: Type or category of the product (e.g., 'T-shirt', 'Shoes')
+        vendor:
+          type: string
+          description: Manufacturer or brand of the product
+        price:
+          type: number
+          format: float
+          description: Price of the product in store currency
+        compareAtPrice:
+          type: number
+          format: float
+          description: Original price if the product is on sale
+        tags:
+          type: string
+          description: Comma-separated list of tags for the product
+        status:
+          type: string
+          enum:
+            - active
+            - draft
+            - archived
+          description: Publication status of the product
+        inventoryQuantity:
+          type: integer
+          description: Initial inventory quantity for the product
+        imageUrl:
+          type: string
+          description: URL of the product image
+      required:
+        - title
+        - price
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the product
+        title:
+          type: string
+          description: Name of the product
+        description:
+          type: string
+          description: Detailed description of the product
+        productType:
+          type: string
+          description: Type or category of the product
+        vendor:
+          type: string
+          description: Manufacturer or brand of the product
+        price:
+          type: number
+          format: float
+          description: Current price of the product
+        compareAtPrice:
+          type: number
+          format: float
+          description: Original price if the product is on sale
+        tags:
+          type: string
+          description: Comma-separated list of tags for the product
+        status:
+          type: string
+          description: Publication status of the product (active, draft, archived)
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the product was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date and time when the product was last updated
+        inventoryQuantity:
+          type: integer
+          description: Current inventory quantity for the product
+        imageUrl:
+          type: string
+          description: URL of the main product image
+    ProductList:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        count:
+          type: integer
+          description: Total number of products matching the query
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the order
+        orderNumber:
+          type: string
+          description: Human-readable order number (e.g., #1001)
+        email:
+          type: string
+          description: Customer's email address
+        phone:
+          type: string
+          description: Customer's phone number
+        financialStatus:
+          type: string
+          description: Payment status of the order (paid, pending, refunded, etc.)
+        fulfillmentStatus:
+          type: string
+          description: Shipping status of the order (unfulfilled, fulfilled, etc.)
+        totalPrice:
+          type: number
+          format: float
+          description: Total price of the order including taxes and shipping
+        subtotalPrice:
+          type: number
+          format: float
+          description: Subtotal price of the order before taxes and shipping
+        totalTax:
+          type: number
+          format: float
+          description: Total tax amount for the order
+        shippingAddress:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Recipient's name
+            address1:
+              type: string
+              description: Street address
+            address2:
+              type: string
+              description: Apartment, suite, etc.
+            city:
+              type: string
+              description: City
+            province:
+              type: string
+              description: State or province
+            country:
+              type: string
+              description: Country
+            zip:
+              type: string
+              description: Postal or ZIP code
+        lineItems:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                description: Unique identifier of the line item
+              title:
+                type: string
+                description: Product title
+              quantity:
+                type: integer
+                description: Quantity ordered
+              price:
+                type: number
+                format: float
+                description: Price per unit
+              totalPrice:
+                type: number
+                format: float
+                description: Total price for this line item
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the order was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date and time when the order was last updated
+    OrderList:
+      type: object
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        count:
+          type: integer
+          description: Total number of orders matching the query
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the customer
+        firstName:
+          type: string
+          description: Customer's first name
+        lastName:
+          type: string
+          description: Customer's last name
+        email:
+          type: string
+          description: Customer's email address
+        phone:
+          type: string
+          description: Customer's phone number
+        ordersCount:
+          type: integer
+          description: Total number of orders placed by this customer
+        totalSpent:
+          type: number
+          format: float
+          description: Total amount spent by this customer
+        addresses:
+          type: array
+          items:
+            type: object
+            properties:
+              address1:
+                type: string
+                description: Street address
+              address2:
+                type: string
+                description: Apartment, suite, etc.
+              city:
+                type: string
+                description: City
+              province:
+                type: string
+                description: State or province
+              country:
+                type: string
+                description: Country
+              zip:
+                type: string
+                description: Postal or ZIP code
+              default:
+                type: boolean
+                description: Whether this is the default address
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the customer account was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date and time when the customer account was last updated
+    CustomerList:
+      type: object
+      properties:
+        customers:
+          type: array
+          items:
+            $ref: "#/components/schemas/Customer"
+        count:
+          type: integer
+          description: Total number of customers matching the query
+    InventoryItem:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the inventory item
+        productId:
+          type: string
+          description: ID of the associated product
+        productTitle:
+          type: string
+          description: Title of the associated product
+        sku:
+          type: string
+          description: Stock Keeping Unit (SKU)
+        locationId:
+          type: string
+          description: ID of the location where inventory is stored
+        available:
+          type: integer
+          description: Available quantity for the inventory item
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date and time when the inventory was last updated
+    InventoryList:
+      type: object
+      properties:
+        inventoryItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/InventoryItem"
+        count:
+          type: integer
+          description: Total number of inventory items matching the query
+        locationId:
+          type: string
+          description: ID of the location used for inventory lookup
+          
+    Location:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the location
+        name:
+          type: string
+          description: Name of the location
+        address:
+          type: object
+          properties:
+            address1:
+              type: string
+              description: Street address
+            address2:
+              type: string
+              description: Additional address information
+            city:
+              type: string
+              description: City
+            province:
+              type: string
+              description: State or province
+            country:
+              type: string
+              description: Country
+            zip:
+              type: string
+              description: Postal or ZIP code
+        phone:
+          type: string
+          description: Phone number for the location
+        active:
+          type: boolean
+          description: Whether the location is active
+        isDefault:
+          type: boolean
+          description: Whether this is the default location
+        createdAt:
+          type: string
+          format: date-time
+          description: Date and time when the location was created
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date and time when the location was last updated
+          
+    LocationList:
+      type: object
+      properties:
+        locations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Location"
+        count:
+          type: integer
+          description: Total number of locations matching the query
