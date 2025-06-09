@@ -164,35 +164,27 @@ This will output something like:
 
 **Save these credentials** - you'll need them for Amazon Q Business configuration.
 
-## Part 4: Testing Your Deployment
+## Part 4: Verify Your Deployment
 
-### 4.1 Test API Authentication
-
-```bash
-# Test OAuth endpoints
-npm run test:auth https://your-api-url/prod
-```
-
-Expected output:
-```
-✓ OAuth authorize endpoint accessible
-✓ OAuth token endpoint accessible
-✓ Authentication flow working
-```
-
-### 4.2 Test Shopify Integration
+### 4.1 Check Deployment Status
 
 ```bash
-# Test API endpoints
-npm run test:api https://your-api-url/prod
+# Verify the stack was deployed successfully
+npx cdk list
+
+# Check if all resources were created
+aws cloudformation describe-stacks --stack-name CdkShopifyStack --query 'Stacks[0].StackStatus'
 ```
 
-Expected output:
-```
-✓ Products endpoint working
-✓ Orders endpoint working
-✓ Customers endpoint working
-✓ Shopify integration successful
+### 4.2 Verify API Gateway Endpoints
+
+You can test your endpoints manually using curl or a tool like Postman:
+
+```bash
+# Test that the API Gateway is accessible
+curl -X GET "https://your-api-url/prod/oauth/authorize?client_id=test&redirect_uri=test&response_type=code&state=test"
+
+# This should return an HTML response or redirect (not an error)
 ```
 
 ## Part 5: Amazon Q Business Plugin Configuration
@@ -289,7 +281,7 @@ Share these example queries with your team:
 
 **Issue: Amazon Q Business Can't Connect**
 - Solution: Verify API Gateway URL is correct
-- Test OAuth flow manually with the test scripts
+- Test OAuth flow manually using curl or Postman
 - Ensure authentication credentials are properly configured
 
 **Issue: Some Operations Don't Work**
@@ -303,8 +295,9 @@ Share these example queries with your team:
    - Navigate to CloudWatch in AWS Console
    - Look for log groups starting with `/aws/lambda/CdkShopifyStack`
 
-2. **Use Test Scripts**:
-   - Run `npm run test:auth` and `npm run test:api` to isolate issues
+2. **Manual Testing**:
+   - Test API endpoints manually using curl or Postman
+   - Check CloudWatch Logs for detailed error information
 
 3. **Verify Shopify Store**:
    - Test API calls directly in Shopify admin
@@ -381,8 +374,14 @@ After successful setup:
 
 4. **Test Integration After Rotation**:
    ```bash
-   # Test API endpoints with new credentials
-   npm run test:api https://your-api-url/prod
+   # Test API endpoints manually to verify new credentials work
+   curl -X GET "https://your-api-url/prod/products" \
+     -H "Authorization: Bearer your-oauth-token"
+   
+   # Check CloudWatch Logs for successful API calls
+   aws logs filter-log-events \
+     --log-group-name /aws/lambda/CdkShopifyStack-ShopifyPluginHandler \
+     --start-time $(date -d '5 minutes ago' +%s)000
    ```
 
 **📖 Full Documentation**: Always refer to the [official Shopify documentation](https://shopify.dev/docs/apps/build/authentication-authorization/client-secrets/rotate-revoke-client-credentials) for the complete rotation procedure to ensure zero-downtime rotation.
