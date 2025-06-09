@@ -25,13 +25,12 @@ from diagrams.custom import Custom
 with Diagram(
     "Amazon Q Business Shopify Plugin - Complete Architecture",
     show=False,
-    direction="LR",
+    direction="TB",
     filename="shopify-plugin-complete-architecture",
     outformat=["png"],
 ):
-    # External components
+    # External components at top
     amazon_q = Custom("Amazon Q Business\nClient", "../assets/amazon-q-icon_gradient_lockup.png")
-    shopify = Custom("Shopify Admin API\n(External Service)", "../assets/shopify.png")
     
     with Cluster("AWS Cloud Infrastructure"):
         # API Gateway
@@ -60,6 +59,9 @@ with Diagram(
         with Cluster("Monitoring & Logging"):
             # CloudWatch Logs
             logs = CloudwatchLogs("CloudWatch Logs\n(All Lambda logs)")
+    
+    # External Shopify at bottom - closer to core application layer
+    shopify = Custom("Shopify Admin API\n(External Service)", "../assets/shopify.png")
     
     # OAuth Flow (Steps 1-3)
     amazon_q >> Edge(label="1. OAuth Authorization\nRequest", color="blue", style="bold") >> api
